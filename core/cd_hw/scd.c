@@ -38,6 +38,10 @@
 
 #include "shared.h"
 
+#ifdef HOOK_CPU
+#include "debug/emu_event.h"
+#endif
+
 /*--------------------------------------------------------------------------*/
 /* Unused area (return open bus data, i.e prefetched instruction word)      */
 /*--------------------------------------------------------------------------*/
@@ -535,6 +539,10 @@ static unsigned int scd_read_byte(unsigned int address)
     return s68k_read_bus_8(address);
   }
 
+#ifdef HOOK_CPU
+  emu_event_push(EMU_EVENT_GATE_ARRAY_READ, EMU_CPU_S68K, s68k.pc, address, 0, 1, 0);
+#endif
+
 #ifdef LOG_SCD
   error("[%d][%d]read byte CD register %X (%X)\n", v_counter, s68k.cycles, address, s68k.pc);
 #endif
@@ -555,6 +563,9 @@ static unsigned int scd_read_byte(unsigned int address)
   if (address == 0x0e)
   {
     s68k_poll_detect(1<<0x0e);
+#ifdef HOOK_CPU
+    emu_event_push(EMU_EVENT_COMMUNICATION, EMU_CPU_S68K, s68k.pc, address, scd.regs[0x0e>>1].byte.h, 1, 0);
+#endif
     return scd.regs[0x0e>>1].byte.h;
   }
 
@@ -813,6 +824,10 @@ static void scd_write_byte(unsigned int address, unsigned int data)
     s68k_unused_8_w(address, data);
     return;
   }
+
+#ifdef HOOK_CPU
+  emu_event_push(EMU_EVENT_GATE_ARRAY_WRITE, EMU_CPU_S68K, s68k.pc, address, data, 1, 0);
+#endif
 
 #ifdef LOG_SCD
   error("[%d][%d]write byte CD register %X -> 0x%02x (%X)\n", v_counter, s68k.cycles, address, data, s68k.pc);
@@ -1073,6 +1088,9 @@ static void scd_write_byte(unsigned int address, unsigned int data)
     case 0x0e:  /* !LDS and !UDS are ignored (verified on real hardware, cf. Krikzz's mcd-verificator, Space Ace, Dragon's Lair) */
     {
       s68k_poll_sync(1<<0x0f);
+#ifdef HOOK_CPU
+      emu_event_push(EMU_EVENT_COMMUNICATION, EMU_CPU_S68K, s68k.pc, address, data, 1, 0);
+#endif
       scd.regs[0x0f>>1].byte.l = data;
       return;
     }
@@ -1125,6 +1143,9 @@ static void scd_write_byte(unsigned int address, unsigned int data)
       if ((reg_16 >= 0x20) && (reg_16 <= 0x2f))
       {
         s68k_poll_sync(1 << ((address - 0x10) & 0x1f));
+#ifdef HOOK_CPU
+        emu_event_push(EMU_EVENT_COMMUNICATION, EMU_CPU_S68K, s68k.pc, address, data, 1, 0);
+#endif
       }
 
       /* MAIN-CPU communication words */

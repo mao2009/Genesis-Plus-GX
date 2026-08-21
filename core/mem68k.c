@@ -39,6 +39,10 @@
 
 #include "shared.h"
 
+#ifdef HOOK_CPU
+#include "debug/emu_event.h"
+#endif
+
 /*--------------------------------------------------------------------------*/
 /* Unused areas (return open bus data, i.e prefetched instruction word)     */
 /*--------------------------------------------------------------------------*/
@@ -354,6 +358,10 @@ unsigned int ctrl_io_read_byte(unsigned int address)
 
     case 0x20:  /* MEGA-CD */
     {
+#ifdef HOOK_CPU
+      emu_event_push(EMU_EVENT_GATE_ARRAY_READ, EMU_CPU_M68K, m68k.pc, address, 0, 1, 0);
+#endif
+
 #ifdef LOG_SCD
       error("[%d][%d]read byte CD register %X (%X)\n", v_counter, m68k.cycles, address, m68k.pc);
 #endif
@@ -391,6 +399,9 @@ unsigned int ctrl_io_read_byte(unsigned int address)
           /* sync SUB-CPU with MAIN-CPU (fixes Dracula Unleashed with Sega CD Model 2 Boot ROM) */
           s68k_sync();
           m68k_poll_detect(1<<0x0f);
+#ifdef HOOK_CPU
+          emu_event_push(EMU_EVENT_COMMUNICATION, EMU_CPU_M68K, m68k.pc, address, scd.regs[0x0f>>1].byte.l, 1, 0);
+#endif
           return scd.regs[0x0f>>1].byte.l;
         }
 
@@ -663,6 +674,10 @@ void ctrl_io_write_byte(unsigned int address, unsigned int data)
 
     case 0x20:  /* MEGA-CD */
     {
+#ifdef HOOK_CPU
+      emu_event_push(EMU_EVENT_GATE_ARRAY_WRITE, EMU_CPU_M68K, m68k.pc, address, data, 1, 0);
+#endif
+
 #ifdef LOG_SCD
       error("[%d][%d]write byte CD register %X -> 0x%02X (%X)\n", v_counter, m68k.cycles, address, data, m68k.pc);
 #endif
@@ -920,6 +935,9 @@ void ctrl_io_write_byte(unsigned int address, unsigned int data)
           case 0x0f: /* !LWR is ignored (Space Ace, Dragon's Lair) */
           {
             m68k_poll_sync(1<<0x0e);
+#ifdef HOOK_CPU
+            emu_event_push(EMU_EVENT_COMMUNICATION, EMU_CPU_M68K, m68k.pc, address, data, 1, 0);
+#endif
             scd.regs[0x0e>>1].byte.h = data;
             return;
           }
@@ -930,6 +948,10 @@ void ctrl_io_write_byte(unsigned int address, unsigned int data)
             if ((address & 0x30) == 0x10)
             {
               m68k_poll_sync(1 << (address & 0x1f));
+
+#ifdef HOOK_CPU
+              emu_event_push(EMU_EVENT_COMMUNICATION, EMU_CPU_M68K, m68k.pc, address, data, 1, 0);
+#endif
 
               /* register LSB */
               if (address & 1)
