@@ -43,6 +43,10 @@
 #include "yx5200.h"
 #include "eq.h"
 
+#ifdef HOOK_CPU
+#include "debug/emu_event.h"
+#endif
+
 /* Global variables */
 t_bitmap bitmap;
 t_snd snd;
@@ -352,6 +356,10 @@ void system_frame_gen(int do_skip)
 {
   /* line counters */
   int start, end, line;
+
+#ifdef HOOK_CPU
+  emu_event_push(EMU_EVENT_FRAME_BEGIN, EMU_CPU_NONE, 0, 0, 0, 0, 0);
+#endif
 
   /* reset frame cycle counter */
   mcycles_vdp = 0;
@@ -690,12 +698,20 @@ void system_frame_gen(int do_skip)
   m68k.cycles -= mcycles_vdp;
   Z80.cycles -= mcycles_vdp;
   dma_endCycles = 0;
+
+#ifdef HOOK_CPU
+  emu_event_push(EMU_EVENT_FRAME_END, EMU_CPU_NONE, 0, 0, 0, 0, 0);
+#endif
 }
 
 void system_frame_scd(int do_skip)
 {
   /* line counters */
   int start, end, line;
+
+#ifdef HOOK_CPU
+  emu_event_push(EMU_EVENT_FRAME_BEGIN, EMU_CPU_NONE, 0, 0, 0, 0, 0);
+#endif
 
   /* reset frame cycle counter */
   mcycles_vdp = 0;
@@ -1020,12 +1036,20 @@ void system_frame_scd(int do_skip)
   m68k.cycles -= mcycles_vdp;
   Z80.cycles -= mcycles_vdp;
   dma_endCycles = 0;
+
+#ifdef HOOK_CPU
+  emu_event_push(EMU_EVENT_FRAME_END, EMU_CPU_NONE, 0, 0, 0, 0, 0);
+#endif
 }
 
 void system_frame_sms(int do_skip)
 {
   /* line counter */
   int start, end, line;
+
+#ifdef HOOK_CPU
+  emu_event_push(EMU_EVENT_FRAME_BEGIN, EMU_CPU_NONE, 0, 0, 0, 0, 0);
+#endif
 
   /* reset frame cycle count */
   mcycles_vdp = 0;
@@ -1428,4 +1452,8 @@ void system_frame_sms(int do_skip)
   /* adjust timings for next frame */
   input_end_frame(mcycles_vdp);
   Z80.cycles -= mcycles_vdp;
+
+#ifdef HOOK_CPU
+  emu_event_push(EMU_EVENT_FRAME_END, EMU_CPU_NONE, 0, 0, 0, 0, 0);
+#endif
 }

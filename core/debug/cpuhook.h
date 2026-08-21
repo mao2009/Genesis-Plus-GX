@@ -46,41 +46,44 @@
 
 typedef enum {
   HOOK_ANY      = (0 << 0),
-  
+
   // M68K
   HOOK_M68K_E   = (1 << 0),
   HOOK_M68K_R   = (1 << 1),
   HOOK_M68K_W   = (1 << 2),
   HOOK_M68K_RW  = HOOK_M68K_R | HOOK_M68K_W,
-  
+
   // VDP
   HOOK_VRAM_R   = (1 << 3),
   HOOK_VRAM_W   = (1 << 4),
   HOOK_VRAM_RW  = HOOK_VRAM_R | HOOK_VRAM_W,
-  
+
   HOOK_CRAM_R   = (1 << 5),
   HOOK_CRAM_W   = (1 << 6),
   HOOK_CRAM_RW  = HOOK_CRAM_R | HOOK_CRAM_W,
-  
+
   HOOK_VSRAM_R  = (1 << 7),
   HOOK_VSRAM_W  = (1 << 8),
   HOOK_VSRAM_RW = HOOK_VSRAM_R | HOOK_VSRAM_W,
-  
+
   // Z80
   HOOK_Z80_E    = (1 << 9),
   HOOK_Z80_R    = (1 << 10),
   HOOK_Z80_W    = (1 << 11),
   HOOK_Z80_RW   = HOOK_Z80_R | HOOK_Z80_W,
-  
+
   // REGS
   HOOK_VDP_REG  = (1 << 12),
   HOOK_M68K_REG = (1 << 13),
+
+  // S68K
+  HOOK_S68K_E   = (1 << 14),
 } hook_type_t;
 
 
 /* CPU hook is called on read, write, and execute.
  */
-void (*cpu_hook)(hook_type_t type, int width, unsigned int address, unsigned int value);
+extern void (*cpu_hook)(hook_type_t type, int width, unsigned int address, unsigned int value);
 
 /* Use set_cpu_hook() to assign a callback that can process the data provided
  * by cpu_hook().
