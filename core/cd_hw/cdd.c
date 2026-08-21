@@ -38,6 +38,10 @@
 #include "shared.h"
 #include "megasd.h"
 
+#ifdef HOOK_CPU
+#include "debug/emu_event.h"
+#endif
+
 #if defined(USE_LIBTREMOR) || defined(USE_LIBVORBIS)
 #define SUPPORTED_EXT 20
 #else
@@ -2011,6 +2015,11 @@ void cdd_update(void)
 
 void cdd_process(void)
 {
+#ifdef HOOK_CPU
+  uint8 command = scd.regs[0x42>>1].byte.h & 0x0f;
+  emu_event_push(EMU_EVENT_CDD_COMMAND, EMU_CPU_S68K, s68k.pc, 0x42, command, 1, command);
+#endif
+
   /* Process CDD command */
   switch (scd.regs[0x42>>1].byte.h & 0x0f)
   {

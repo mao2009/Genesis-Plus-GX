@@ -38,6 +38,10 @@
 
 #include "shared.h"
 
+#ifdef HOOK_CPU
+#include "debug/emu_event.h"
+#endif
+
 /* IFSTAT register bitmasks */
 #define BIT_DTEI  0x40
 #define BIT_DECI  0x20
@@ -404,6 +408,10 @@ void cdc_dma_update(unsigned int cycles)
 
     /* reset data byte counter (DBCH bits 4-7 should also be set to 1) */
     cdc.dbc.w = 0xffff;
+
+#ifdef HOOK_CPU
+    emu_event_push(EMU_EVENT_CDC_DMA_END, EMU_CPU_S68K, s68k.pc, 0, 0, 0, 0);
+#endif
 
     /* clear !DTEN and !DTBSY */
     cdc.ifstat |= (BIT_DTBSY | BIT_DTEN);
