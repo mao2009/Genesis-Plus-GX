@@ -127,6 +127,10 @@
 #include "shared.h"
 #include "z80.h"
 
+#ifdef HOOK_CPU
+#include "debug/cpuhook.h"
+#endif
+
 /* execute main opcodes inside a big switch statement */
 #define BIG_SWITCH 1
 
@@ -3427,6 +3431,12 @@ void z80_run(unsigned int cycles)
       take_interrupt();
       if (Z80.cycles >= cycles) return;
     }
+
+#ifdef HOOK_CPU
+    /* Trigger execution hook */
+    if (UNLIKELY(cpu_hook))
+      cpu_hook(HOOK_Z80_E, 0, PC, 0);
+#endif
 
     Z80.after_ei = FALSE;
     R++;
